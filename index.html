@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>English to Bliss Translator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    #blissOutput img { margin: 0 5px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <h1>English to Bliss Translator</h1>
+  <p>Type your English text below and click "Translate" to see it in Bliss symbols.</p>
+  <input type="text" id="englishInput" placeholder="Enter English text" style="width: 80%; padding: 0.5em;" />
+  <button onclick="translate()">Translate</button>
+  
+  <h2>Translation:</h2>
+  <div id="blissOutput"></div>
+  
+  <script>
+    // Global variables to hold the dictionary and synonym mapping.
+    var dictionary = {};
+    var synonymMapping = {};
+
+    // Load the JSON dictionary from the file in the same folder.
+    fetch('blissDictionary.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        dictionary = data;
+        // Preprocess the dictionary to build a synonym mapping.
+        // Each key might include multiple synonyms separated by commas.
+        for (var key in dictionary) {
+          var synonyms = key.split(',');
+          synonyms.forEach(function(synonym) {
+            synonymMapping[synonym.trim().toLowerCase()] = key;
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching dictionary:', error);
+      });
+
+    // Function to perform the translation.
+    function translate() {
+      var input = document.getElementById("englishInput").value;
+      var words = input.split(/\s+/); // Split on whitespace
+      var outputHTML = "";
+
+      words.forEach(function(word) {
+        // Normalize word lookup.
+        var lookupKey = synonymMapping[word.toLowerCase()];
+        if (lookupKey) {
+          outputHTML += dictionary[lookupKey].symbol + " ";
+        } else {
+          // Output as plain text if no matching Bliss symbol is found.
+          outputHTML += word + " ";
+        }
+      });
+
+      document.getElementById("blissOutput").innerHTML = outputHTML;
+    }
+  </script>
+</body>
+</html>
 
