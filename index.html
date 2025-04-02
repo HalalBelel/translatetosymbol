@@ -54,6 +54,13 @@
       display: block;
       margin: auto;
     }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #555;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -64,25 +71,28 @@
   </form>
   <div id="output"></div>
 
-  <script>
-    // Update these dictionaries to match your actual data.
-    // Ensure that the keys match exactly (case-sensitive) with what you enter.
-    const svgDict = {
-      "horseradish": "horseradish.svg",
-      "spicy": "spicy.svg",
-      "root": "root.svg",
-      "vegetable": "vegetable.svg",
-      "example": "example.svg",
-      "test": "test.svg",
-      "word": "word.svg"
-      // Add additional mappings as needed.
-    };
+  <!-- Version Info & Updates -->
+  <footer>
+    <div id="versionInfo"></div>
+    <div id="updatesBox"></div>
+  </footer>
 
-    // Composite dictionary: if a word is composite, list its components.
-    const compDict = {
-      "horseradish": ["spicy", "root", "vegetable"]
-      // Add additional composite mappings as needed.
-    };
+  <script>
+    // Global objects to hold your dictionaries.
+    let svgDict = {};
+    let compDict = {};
+    let defDict = {};
+
+    // Load the dictionaries from JSON files.
+    Promise.all([
+      fetch('dict/svg_dict.json').then(response => response.json()).then(data => { svgDict = data; }),
+      fetch('dict/comp_dict.json').then(response => response.json()).then(data => { compDict = data; }),
+      fetch('dict/def_dict.json').then(response => response.json()).then(data => { defDict = data; })
+    ]).then(() => {
+      console.log('Dictionaries loaded:', { svgDict, compDict, defDict });
+    }).catch(error => {
+      console.error('Error loading dictionaries:', error);
+    });
 
     /**
      * Creates a section for a given word.
@@ -95,9 +105,9 @@
 
       // Main word output container.
       const mainOutput = document.createElement('div');
-      
+
+      // Look up the word in svgDict.
       if (svgDict[word]) {
-        // If the word exists in svgDict, display its image and label.
         const img = document.createElement('img');
         img.src = "svg/" + svgDict[word];
         img.alt = word;
@@ -107,7 +117,6 @@
         mainOutput.appendChild(label);
         console.log("Found SVG for:", word);
       } else {
-        // Otherwise, just display the word as text.
         const label = document.createElement('p');
         label.textContent = word + " (no symbol found)";
         mainOutput.appendChild(label);
@@ -123,12 +132,11 @@
           const compDiv = document.createElement('div');
           compDiv.className = 'component';
           const compImg = document.createElement('img');
-          // Use the corresponding svg from svgDict, or fallback to "blank.svg".
           if (svgDict[comp]) {
             compImg.src = "svg/" + svgDict[comp];
             console.log("Found SVG for component:", comp);
           } else {
-            compImg.src = "svg/B_(uppercase).svg";
+            compImg.src = "svg/blank.svg";
             console.warn("No SVG for component:", comp, "using blank.svg");
           }
           compImg.alt = comp;
@@ -140,7 +148,6 @@
         });
         section.appendChild(compContainer);
       }
-
       return section;
     }
 
@@ -149,18 +156,25 @@
       e.preventDefault();
       const inputText = document.getElementById('inputText').value.trim();
       if (inputText === "") return;
-      
+
       // Clear any previous output.
       const outputDiv = document.getElementById('output');
       outputDiv.innerHTML = "";
-      
-      // Split input text into words (adjust splitting logic if needed).
+
+      // Split input text into words.
       const words = inputText.split(/\s+/);
       words.forEach(word => {
         const section = createWordSection(word);
         outputDiv.appendChild(section);
       });
     });
+
+    // Author update and version stamp.
+    const AUTHOR_UPDATE = "Notes: Rotate to activate autoscrolling. Control playback speed via triple dot menu. Licence: Data from VerseByVerseQuran.com, kindly send feedback to info@onewordquran.com, may Allah bless the contributors";
+    const modifiedDate = new Date(document.lastModified);
+    const versionText = "Version: " + modifiedDate.toLocaleDateString("en-AU") + " " + modifiedDate.toLocaleTimeString("en-AU");
+    document.getElementById("versionInfo").textContent = versionText;
+    document.getElementById("updatesBox").textContent = AUTHOR_UPDATE + "\n" + versionText;
   </script>
 </body>
 </html>
