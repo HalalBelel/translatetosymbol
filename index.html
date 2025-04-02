@@ -65,8 +65,8 @@
   <div id="output"></div>
 
   <script>
-    // Sample dictionaries for demonstration.
-    // Replace or extend these with your own data.
+    // Update these dictionaries to match your actual data.
+    // Ensure that the keys match exactly (case-sensitive) with what you enter.
     const svgDict = {
       "horseradish": "horseradish.svg",
       "spicy": "spicy.svg",
@@ -78,7 +78,7 @@
       // Add additional mappings as needed.
     };
 
-    // compDict defines composite words and their components.
+    // Composite dictionary: if a word is composite, list its components.
     const compDict = {
       "horseradish": ["spicy", "root", "vegetable"]
       // Add additional composite mappings as needed.
@@ -96,36 +96,40 @@
       // Main word output container.
       const mainOutput = document.createElement('div');
       
-      if (svgDict[word.toLowerCase()]) {
+      if (svgDict[word]) {
         // If the word exists in svgDict, display its image and label.
         const img = document.createElement('img');
-        img.src = "svg/" + svgDict[word.toLowerCase()];
+        img.src = "svg/" + svgDict[word];
         img.alt = word;
         mainOutput.appendChild(img);
         const label = document.createElement('p');
         label.textContent = word;
         mainOutput.appendChild(label);
+        console.log("Found SVG for:", word);
       } else {
         // Otherwise, just display the word as text.
         const label = document.createElement('p');
-        label.textContent = word;
+        label.textContent = word + " (no symbol found)";
         mainOutput.appendChild(label);
+        console.warn("No SVG found for:", word);
       }
       section.appendChild(mainOutput);
 
       // Check if the word has components in compDict.
-      if (compDict[word.toLowerCase()]) {
+      if (compDict[word]) {
         const compContainer = document.createElement('div');
         compContainer.className = 'components';
-        compDict[word.toLowerCase()].forEach(comp => {
+        compDict[word].forEach(comp => {
           const compDiv = document.createElement('div');
           compDiv.className = 'component';
           const compImg = document.createElement('img');
           // Use the corresponding svg from svgDict, or fallback to "blank.svg".
-          if (svgDict[comp.toLowerCase()]) {
-            compImg.src = "svg/" + svgDict[comp.toLowerCase()];
+          if (svgDict[comp]) {
+            compImg.src = "svg/" + svgDict[comp];
+            console.log("Found SVG for component:", comp);
           } else {
-            compImg.src = "svg/blank.svg";
+            compImg.src = "svg/B_(uppercase).svg";
+            console.warn("No SVG for component:", comp, "using blank.svg");
           }
           compImg.alt = comp;
           compDiv.appendChild(compImg);
@@ -150,7 +154,7 @@
       const outputDiv = document.getElementById('output');
       outputDiv.innerHTML = "";
       
-      // Split input text into words (you can adjust splitting logic if needed).
+      // Split input text into words (adjust splitting logic if needed).
       const words = inputText.split(/\s+/);
       words.forEach(word => {
         const section = createWordSection(word);
