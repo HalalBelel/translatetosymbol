@@ -1,70 +1,162 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>English to Bliss Translator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bliss Translator</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    #blissOutput img { margin: 0 5px; vertical-align: middle; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    #translatorForm {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #translatorForm input[type="text"] {
+      width: 60%;
+      padding: 10px;
+      font-size: 1rem;
+    }
+    #translatorForm button {
+      padding: 10px 20px;
+      font-size: 1rem;
+    }
+    #output {
+      margin-top: 20px;
+    }
+    .word-section {
+      margin-bottom: 40px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .word-section p {
+      text-align: center;
+      font-weight: bold;
+    }
+    .components {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .component {
+      text-align: center;
+    }
+    .component img,
+    .word-section img {
+      max-width: 100px;
+      height: auto;
+      display: block;
+      margin: auto;
+    }
   </style>
 </head>
 <body>
-  <h1>English to Bliss Translator</h1>
-  <p>Type your English text below and click "Translate" to see it in Bliss symbols.</p>
-  <input type="text" id="englishInput" placeholder="Enter English text" style="width: 80%; padding: 0.5em;" />
-  <button onclick="translate()">Translate</button>
-  
-  <h2>Translation:</h2>
-  <div id="blissOutput"></div>
-  
+  <h1>Bliss Translator</h1>
+  <form id="translatorForm">
+    <input type="text" id="inputText" placeholder="Enter text here" required />
+    <button type="submit">Translate</button>
+  </form>
+  <div id="output"></div>
+
   <script>
-    // Global variables to hold the dictionary and synonym mapping.
-    var dictionary = {};
-    var synonymMapping = {};
+    // Sample dictionaries for demonstration.
+    // Replace or extend these with your own data.
+    const svgDict = {
+      "horseradish": "horseradish.svg",
+      "spicy": "spicy.svg",
+      "root": "root.svg",
+      "vegetable": "vegetable.svg",
+      "example": "example.svg",
+      "test": "test.svg",
+      "word": "word.svg"
+      // Add additional mappings as needed.
+    };
 
-    // Load the JSON dictionary from the file in the same folder.
-    fetch('blissDictionary.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        dictionary = data;
-        // Preprocess the dictionary to build a synonym mapping.
-        // Each key might include multiple synonyms separated by commas.
-        for (var key in dictionary) {
-          var synonyms = key.split(',');
-          synonyms.forEach(function(synonym) {
-            synonymMapping[synonym.trim().toLowerCase()] = key;
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching dictionary:', error);
-      });
+    // compDict defines composite words and their components.
+    const compDict = {
+      "horseradish": ["spicy", "root", "vegetable"]
+      // Add additional composite mappings as needed.
+    };
 
-    // Function to perform the translation.
-    function translate() {
-      var input = document.getElementById("englishInput").value;
-      var words = input.split(/\s+/); // Split on whitespace
-      var outputHTML = "";
+    /**
+     * Creates a section for a given word.
+     * If the word exists in svgDict, it shows the corresponding image and label.
+     * If the word is composite (exists in compDict), it displays each component.
+     */
+    function createWordSection(word) {
+      const section = document.createElement('div');
+      section.className = 'word-section';
 
-      words.forEach(function(word) {
-        // Normalize word lookup.
-        var lookupKey = synonymMapping[word.toLowerCase()];
-        if (lookupKey) {
-          outputHTML += dictionary[lookupKey].symbol + " ";
-        } else {
-          // Output as plain text if no matching Bliss symbol is found.
-          outputHTML += word + " ";
-        }
-      });
+      // Main word output container.
+      const mainOutput = document.createElement('div');
+      
+      if (svgDict[word.toLowerCase()]) {
+        // If the word exists in svgDict, display its image and label.
+        const img = document.createElement('img');
+        img.src = "svg/" + svgDict[word.toLowerCase()];
+        img.alt = word;
+        mainOutput.appendChild(img);
+        const label = document.createElement('p');
+        label.textContent = word;
+        mainOutput.appendChild(label);
+      } else {
+        // Otherwise, just display the word as text.
+        const label = document.createElement('p');
+        label.textContent = word;
+        mainOutput.appendChild(label);
+      }
+      section.appendChild(mainOutput);
 
-      document.getElementById("blissOutput").innerHTML = outputHTML;
+      // Check if the word has components in compDict.
+      if (compDict[word.toLowerCase()]) {
+        const compContainer = document.createElement('div');
+        compContainer.className = 'components';
+        compDict[word.toLowerCase()].forEach(comp => {
+          const compDiv = document.createElement('div');
+          compDiv.className = 'component';
+          const compImg = document.createElement('img');
+          // Use the corresponding svg from svgDict, or fallback to "blank.svg".
+          if (svgDict[comp.toLowerCase()]) {
+            compImg.src = "svg/" + svgDict[comp.toLowerCase()];
+          } else {
+            compImg.src = "svg/blank.svg";
+          }
+          compImg.alt = comp;
+          compDiv.appendChild(compImg);
+          const compLabel = document.createElement('p');
+          compLabel.textContent = comp;
+          compDiv.appendChild(compLabel);
+          compContainer.appendChild(compDiv);
+        });
+        section.appendChild(compContainer);
+      }
+
+      return section;
     }
+
+    // Event listener for form submission.
+    document.getElementById('translatorForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const inputText = document.getElementById('inputText').value.trim();
+      if (inputText === "") return;
+      
+      // Clear any previous output.
+      const outputDiv = document.getElementById('output');
+      outputDiv.innerHTML = "";
+      
+      // Split input text into words (you can adjust splitting logic if needed).
+      const words = inputText.split(/\s+/);
+      words.forEach(word => {
+        const section = createWordSection(word);
+        outputDiv.appendChild(section);
+      });
+    });
   </script>
 </body>
 </html>
-
